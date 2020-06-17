@@ -39,6 +39,11 @@ module pad_frame
         input logic             oe_spim_sdio3_i  ,
         input logic             oe_spim_csn0_i   ,
         input logic             oe_spim_csn1_i   ,
+	input logic 		oe_hbus_dq_i	 ,
+	input logic 		oe_hbus_rwds_i	 ,
+	input logic 		oe_hbus_csn0_i	 ,
+	input logic 		oe_hbus_clk_i	 ,
+	input logic 		oe_hbus_clkn_i	 ,
         input logic             oe_spim_sck_i    ,
         input logic             oe_i2s0_sck_i    ,
         input logic             oe_i2s0_ws_i     ,
@@ -74,6 +79,20 @@ module pad_frame
         input logic             out_spim_csn0_i  ,
         input logic             out_spim_csn1_i  ,
         input logic             out_spim_sck_i   ,
+	input logic 		out_hbus_dq_0_i	 ,
+	input logic 		out_hbus_dq_1_i	 ,
+	input logic 		out_hbus_dq_2_i	 ,
+	input logic 		out_hbus_dq_3_i	 ,
+	input logic 		out_hbus_dq_4_i	 ,
+	input logic 		out_hbus_dq_5_i	 ,
+	input logic 		out_hbus_dq_6_i	 ,
+	input logic 		out_hbus_dq_7_i	 ,
+	input logic 		out_hbus_rwds_i  ,
+	input logic 		out_hbus_csn0_i  ,
+	input logic 		out_hbus_clk_i	 ,
+	input logic 		out_hbus_clkn_i	 ,
+
+
         input logic             out_i2s0_sck_i   ,
         input logic             out_i2s0_ws_i    ,
         input logic             out_i2s0_sdi_i   ,
@@ -108,6 +127,18 @@ module pad_frame
         output logic            in_spim_csn0_o   ,
         output logic            in_spim_csn1_o   ,
         output logic            in_spim_sck_o    ,
+	output logic 		in_hbus_dq_0_o	 ,
+	output logic 		in_hbus_dq_1_o	 ,
+	output logic 		in_hbus_dq_2_o	 ,
+	output logic 		in_hbus_dq_3_o	 ,
+	output logic 		in_hbus_dq_4_o	 ,
+	output logic 		in_hbus_dq_5_o	 ,
+	output logic 		in_hbus_dq_6_o	 ,
+	output logic 		in_hbus_dq_7_o	 ,
+	output logic 		in_hbus_rwds_o	 ,
+	output logic 		in_hbus_csn0_o	 ,
+	output logic 		in_hbus_clk_o	 ,
+	output logic 		in_hbus_clkn_o	 ,
         output logic            in_i2s0_sck_o    ,
         output logic            in_i2s0_ws_o     ,
         output logic            in_i2s0_sdi_o    ,
@@ -144,6 +175,11 @@ module pad_frame
         inout wire              pad_spim_csn0    ,
         inout wire              pad_spim_csn1    ,
         inout wire              pad_spim_sck     ,
+	inout wire	[7:0]	pad_hbus_dq	 ,
+	inout wire		pad_hbus_rwds	 ,
+	inout wire		pad_hbus_csn0	 ,
+	inout wire		pad_hbus_clk	 ,
+	inout wire		pad_hbus_clkn	 ,
         inout wire              pad_i2s0_sck     ,
         inout wire              pad_i2s0_ws      ,
         inout wire              pad_i2s0_sdi     ,
@@ -189,6 +225,20 @@ module pad_frame
     pad_functional_pd padinst_spim_sdio3 (.OEN(~oe_spim_sdio3_i), .I(out_spim_sdio3_i), .O(in_spim_sdio3_o), .PAD(pad_spim_sdio3), .PEN(~pad_cfg_i[3][0] ) );
     pad_functional_pd padinst_spim_csn1  (.OEN(~oe_spim_csn1_i ), .I(out_spim_csn1_i ), .O(in_spim_csn1_o ), .PAD(pad_spim_csn1 ), .PEN(~pad_cfg_i[5][0] ) );
     pad_functional_pd padinst_spim_csn0  (.OEN(~oe_spim_csn0_i ), .I(out_spim_csn0_i ), .O(in_spim_csn0_o ), .PAD(pad_spim_csn0 ), .PEN(~pad_cfg_i[4][0] ) );
+
+    pad_functional_pd padinst_hbus_dq_0	 (.OEN(~oe_hbus_dq_i  ), .I(out_hbus_dq_0_i   ), .O(in_hbus_dq_0_o	  ), .PAD(pad_hbus_dq[0]   ), .PEN(oe_hbus_dq_i[0]) );
+    pad_functional_pd padinst_hbus_dq_1	 (.OEN(~oe_hbus_dq_i  ), .I(out_hbus_dq_1_i   ), .O(in_hbus_dq_1_o	  ), .PAD(pad_hbus_dq[1]   ), .PEN(oe_hbus_dq_i[1]) );
+    pad_functional_pd padinst_hbus_dq_2	 (.OEN(~oe_hbus_dq_i  ), .I(out_hbus_dq_2_i   ), .O(in_hbus_dq_2_o	  ), .PAD(pad_hbus_dq[2]   ), .PEN(oe_hbus_dq_i[2]) );
+    pad_functional_pd padinst_hbus_dq_3	 (.OEN(~oe_hbus_dq_i  ), .I(out_hbus_dq_3_i   ), .O(in_hbus_dq_3_o	  ), .PAD(pad_hbus_dq[3]   ), .PEN(oe_hbus_dq_i[3]) );
+    pad_functional_pd padinst_hbus_dq_4	 (.OEN(~oe_hbus_dq_i  ), .I(out_hbus_dq_4_i   ), .O(in_hbus_dq_4_o	  ), .PAD(pad_hbus_dq[4]   ), .PEN(oe_hbus_dq_i[4]) );
+    pad_functional_pd padinst_hbus_dq_5	 (.OEN(~oe_hbus_dq_i  ), .I(out_hbus_dq_5_i   ), .O(in_hbus_dq_5_o	  ), .PAD(pad_hbus_dq[5]   ), .PEN(oe_hbus_dq_i[5]) );
+    pad_functional_pd padinst_hbus_dq_6	 (.OEN(~oe_hbus_dq_i  ), .I(out_hbus_dq_6_i   ), .O(in_hbus_dq_6_o	  ), .PAD(pad_hbus_dq[6]   ), .PEN(oe_hbus_dq_i[6]) );
+    pad_functional_pd padinst_hbus_dq_7	 (.OEN(~oe_hbus_dq_i  ), .I(out_hbus_dq_7_i   ), .O(in_hbus_dq_7_o	  ), .PAD(pad_hbus_dq[7]   ), .PEN(oe_hbus_dq_i[7]) );
+    pad_functional_pd padinst_hbus_rwds	 (.OEN(~oe_hbus_rwds_i ), .I(out_hbus_rwds_i ), .O(in_hbus_rwds_o ), .PAD(pad_hbus_rwds ), .PEN( oe_hbus_rwds_i	 ) );
+    pad_functional_pd padinst_hbus_csn0	 (.OEN(~oe_hbus_csn0_i ), .I(out_hbus_csn0_i ), .O(in_hbus_csn0_o ), .PAD(pad_hbus_csn0 ), .PEN( 1'b1		 ) );
+    pad_functional_pd padinst_hbus_clk	 (.OEN(~oe_hbus_clk_i  ), .I(out_hbus_clk_i  ), .O(in_hbus_clk_o  ), .PAD(pad_hbus_clk  ), .PEN( 1'b1		 ) );
+    pad_functional_pd padinst_hbus_clkn	 (.OEN(~oe_hbus_clkn_i ), .I(out_hbus_clkn_i ), .O(in_hbus_clkn_o ), .PAD(pad_hbus_clkn ), .PEN( 1'b1		 ) );
+
 
     pad_functional_pd padinst_i2s1_sdi   (.OEN(~oe_i2s1_sdi_i  ), .I(out_i2s1_sdi_i  ), .O(in_i2s1_sdi_o  ), .PAD(pad_i2s1_sdi  ), .PEN(~pad_cfg_i[38][0]) );
     pad_functional_pd padinst_i2s0_ws    (.OEN(~oe_i2s0_ws_i   ), .I(out_i2s0_ws_i   ), .O(in_i2s0_ws_o   ), .PAD(pad_i2s0_ws   ), .PEN(~pad_cfg_i[36][0]) );

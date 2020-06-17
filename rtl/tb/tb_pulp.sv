@@ -16,8 +16,7 @@
  * Robert Balas <balasr@iis.ee.ethz.ch>
  */
 
-// timeunit 1ps;
-// timeprecision 1ps;
+
 
 `define EXIT_SUCCESS  0
 `define EXIT_FAIL     1
@@ -26,8 +25,9 @@
 
 
 module tb_pulp;
-
-   parameter CONFIG_FILE = "NONE";
+timeunit 1ps;
+timeprecision 1ps; 
+parameter CONFIG_FILE = "NONE";
 
    /* simulation platform parameters */
 
@@ -38,7 +38,7 @@ module tb_pulp;
 
    // the following parameters can activate instantiation of the verification IPs for SPI, I2C and I2s
    // see the instructions in rtl/vip/{i2c_eeprom,i2s,spi_flash} to download the verification IPs
-   parameter  USE_S25FS256S_MODEL = 0;
+   parameter  USE_S25FS256S_MODEL = 1;
    parameter  USE_24FC1025_MODEL  = 0;
    parameter  USE_I2S_MODEL       = 0;
 
@@ -46,7 +46,8 @@ module tb_pulp;
    parameter  REF_CLK_PERIOD = 30517ns;
 
    // how L2 is loaded. valid values are "JTAG" or "STANDALONE", the latter works only when USE_S25FS256S_MODEL is 1
-   parameter  LOAD_L2 = "JTAG";
+   //parameter  LOAD_L2 = "JTAG";
+   parameter  LOAD_L2 = "STANDALONE";
 
    // enable DPI-based JTAG
    parameter  ENABLE_DPI = 0;
@@ -135,6 +136,12 @@ module tb_pulp;
    tri                   w_spi_master_csn1;
    tri                   w_spi_master_sck;
 
+   tri			 w_hbus_rwds;
+   tri	[7:0]		 w_hbus_dq;	 
+   tri			 w_hbus_csn0;
+   tri			 w_hbus_clk;
+   tri			 w_hbus_clkn;
+
    tri                   w_sdio_data0;
 
    wire                  w_i2c0_scl;
@@ -206,7 +213,7 @@ module tb_pulp;
    logic                tmp_tdo;
    logic                tmp_bridge_tdo;
 
-
+	
 
    wire w_master_i2s_sck;
    wire w_master_i2s_ws ;
@@ -217,7 +224,11 @@ module tb_pulp;
 
    logic [8:0] jtag_conf_reg, jtag_conf_rego; //22bits but actually only the last 9bits are used
 
-
+   initial
+   begin
+	   $fsdbDumpfile("tb_pulp.fsdb");
+	   $fsdbDumpvars(0, tb_pulp);
+   end
    `ifdef USE_DPI
    generate
       if (CONFIG_FILE != "NONE") begin
@@ -347,10 +358,12 @@ module tb_pulp;
     assign w_tck        = tmp_tck;
     assign w_tdi        = tmp_tdi;
     assign w_tms        = tmp_tms;
-    assign s_tdo        = tmp_tdo;
+   // assign s_tdo        = tmp_tdo;
     assign w_bridge_tdo = tmp_bridge_tdo;
     assign sim_jtag_tdo = tmp_tdo;
 
+    always @(*)
+	    s_tdo = tmp_tdo;
 
    if (CONFIG_FILE == "NONE") begin
       assign w_uart_tx = w_uart_rx;
@@ -381,7 +394,9 @@ module tb_pulp;
       if(USE_S25FS256S_MODEL == 1) begin
          s25fs256s #(
             .TimingModel   ( "S25FS256SAGMFI000_F_30pF" ),
-            .mem_file_name ( "slm_files/flash_stim.slm" ),
+            .mem_file_name ( "flash.bin" ),
+            //.mem_file_name ( "slm_files/flash_stim.slm" ),
+            //.mem_file_name ( "./s25fs256s.mem" ),
             .UserPreload   (1)
          ) i_spi_flash_csn0 (
             .SI       ( w_spi_master_sdio0 ),
@@ -430,6 +445,24 @@ module tb_pulp;
          .RESET ( 1'b0       )
       );
    end
+
+s26ks512s 
+#(.mem_file_name("s25fs256s.mem"))
+	hyperflash (
+    .DQ7(w_hbus_dq[7]), 
+    .DQ6(w_hbus_dq[6]), 
+    .DQ5(w_hbus_dq[5]), 
+    .DQ4(w_hbus_dq[4]), 
+    .DQ3(w_hbus_dq[3]), 
+    .DQ2(w_hbus_dq[2]), 
+    .DQ1(w_hbus_dq[1]), 
+    .DQ0(w_hbus_dq[0]), 
+    .RWDS(w_hbus_rwds), 
+    .CSNeg(w_hbus_csn0), 
+    .CK(w_hbus_clk), 
+    .CKNeg(w_hbus_clkn),
+    .RESETNeg(s_rst_n)
+    );
 
    if (!ENABLE_DEV_DPI && CONFIG_FILE == "NONE") begin
 
@@ -547,6 +580,12 @@ module tb_pulp;
       .pad_spim_csn1      ( w_spi_master_csn1  ),
       .pad_spim_sck       ( w_spi_master_sck   ),
 
+      .pad_hbus_dq	  ( w_hbus_dq	       ),
+      .pad_hbus_rwds	  ( w_hbus_rwds	       ),
+      .pad_hbus_csn0	  ( w_hbus_csn0	       ),
+      .pad_hbus_clk	  ( w_hbus_clk	       ),
+      .pad_hbus_clkn 	  ( w_hbus_clkn	       ),
+
       .pad_uart_rx        ( w_uart_tx          ),
       .pad_uart_tx        ( w_uart_rx          ),
 
@@ -647,6 +686,43 @@ module tb_pulp;
                s_bootsel = 1'b1;
             end
 
+
+	    if (LOAD_L2 == "STANDALONE")
+	    begin
+		    $display("releasing reset in STANDALONE mode");
+		s_rst_n = 1'b1;
+		#300e6;
+		$display ("after hyper flash power up %t", $time);
+		force i_dut.soc_domain_i.pulp_soc_i.soc_peripherals_i.i_udma.s_rx_ch_ready[7]  = 1;
+		force i_dut.soc_domain_i.pulp_soc_i.soc_peripherals_i.i_udma.s_periph_valid[8] = 1;
+		force i_dut.soc_domain_i.pulp_soc_i.soc_peripherals_i.i_udma.s_periph_rwn	 = 0;
+		//config start_rx_addr
+		force i_dut.soc_domain_i.pulp_soc_i.soc_peripherals_i.i_udma.s_periph_addr	 = 5'b01000;
+		force i_dut.soc_domain_i.pulp_soc_i.soc_peripherals_i.i_udma.s_periph_data_to  = 4;
+		@(posedge tb_pulp.i_dut.soc_domain_i.pulp_soc_i.s_soc_clk);
+		//config rx_size
+		force i_dut.soc_domain_i.pulp_soc_i.soc_peripherals_i.i_udma.s_periph_addr	 = 'h1;
+		force i_dut.soc_domain_i.pulp_soc_i.soc_peripherals_i.i_udma.s_periph_data_to  = 'h4;
+		@(posedge tb_pulp.i_dut.soc_domain_i.pulp_soc_i.s_soc_clk);
+		//config rd latency
+		force i_dut.soc_domain_i.pulp_soc_i.soc_peripherals_i.i_udma.s_periph_addr 	 = 5'b01010;
+		force i_dut.soc_domain_i.pulp_soc_i.soc_peripherals_i.i_udma.s_periph_data_to	 = 'd5;
+		@(posedge tb_pulp.i_dut.soc_domain_i.pulp_soc_i.s_soc_clk);
+		//config r_mode
+		force i_dut.soc_domain_i.pulp_soc_i.soc_peripherals_i.i_udma.s_periph_addr 	 = 5'b01001;
+		force i_dut.soc_domain_i.pulp_soc_i.soc_peripherals_i.i_udma.s_periph_data_to  = 16'b1000;
+		@(posedge tb_pulp.i_dut.soc_domain_i.pulp_soc_i.s_soc_clk);
+		//config reg_hyp_reg
+		force i_dut.soc_domain_i.pulp_soc_i.soc_peripherals_i.i_udma.s_periph_addr 	 = 5'b01011;
+		force i_dut.soc_domain_i.pulp_soc_i.soc_peripherals_i.i_udma.s_periph_data_to  = 16'b1000_0000_0000_0000;
+		@(posedge tb_pulp.i_dut.soc_domain_i.pulp_soc_i.s_soc_clk);
+		//config r_rx_en
+		force i_dut.soc_domain_i.pulp_soc_i.soc_peripherals_i.i_udma.s_periph_addr	 = 'h2;
+		force i_dut.soc_domain_i.pulp_soc_i.soc_peripherals_i.i_udma.s_periph_data_to  = 'b010001;
+		#2000e4;
+		$finish();
+	    end
+
             if (LOAD_L2 == "JTAG") begin
                if (USE_FLL)
                   $display("[TB] %t - Using FLL", $realtime);
@@ -669,7 +745,9 @@ module tb_pulp;
 
                // before starting the actual boot procedure we do some light
                // testing on the jtag link
+	       $display ("before reset : %t", $time);
                jtag_pkg::jtag_reset(s_tck, s_tms, s_trstn, s_tdi);
+	       $display ("after reset : %t", $time);
                jtag_pkg::jtag_softreset(s_tck, s_tms, s_trstn, s_tdi);
                #5us;
 
@@ -744,6 +822,7 @@ module tb_pulp;
 
                // long debug module + jtag tests
                if(ENABLE_DM_TESTS == 1) begin
+		       $display("Rich debug: I am in DM_TEST!");
                   debug_mode_if.run_dm_tests(FC_CORE_ID, begin_l2_instr,
                                            error, num_err, s_tck, s_tms, s_trstn, s_tdi, s_tdo);
                   // we don't have any program to load so we finish the testing

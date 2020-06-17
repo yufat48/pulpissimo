@@ -15,7 +15,8 @@
  */
 
 package jtag_pkg;
-
+timeunit 1ps;
+timeprecision 1ps;
    parameter int unsigned JTAG_SOC_INSTR_WIDTH                                 = 5;
    parameter logic [JTAG_SOC_INSTR_WIDTH-1:0]  JTAG_SOC_IDCODE                 = 5'b00001;
    parameter logic [JTAG_SOC_INSTR_WIDTH-1:0]  JTAG_SOC_DTMCSR                 = 5'b10000;
@@ -278,6 +279,7 @@ package jtag_pkg;
             s_tdi = datain[i];
             jtag_clock(1, s_tck);
             dataout[i] = s_tdo;
+//	 $display("Rich debug %t: inside shitf loop: i: %d, s_tdo is %b, dataout is %b",$time, i, s_tdo, dataout);
          end
       endtask
 
@@ -937,10 +939,16 @@ package jtag_pkg;
          logic [DMI_SIZE-1+1:0] buffer;
          logic [DMI_SIZE-1:0]   buffer_riscv;
          JTAG_reg #(.size(DMI_SIZE+1), .instr({JTAG_SOC_DMIACCESS, JTAG_SOC_BYPASS})) jtag_soc_dbg = new;
+//	 $display("Rich debug 0 %t :op_i: %b, address_i: %d, data_i: %h, data_o: %h, s_tck: %b,s_tms:%b, s_trstn:%b, s_tdi:%b, s_tdo:%b", $time, op_i, address_i, data_i, data_o, s_tck, s_tms, s_trstn, s_tdi, s_tdo); 
+
          jtag_soc_dbg.start_shift(s_tck, s_tms, s_trstn, s_tdi);
+//	 $display("Rich debug 1 %t :op_i: %b, address_i: %d, data_i: %h, data_o: %h, s_tck: %b,s_tms:%b, s_trstn:%b, s_tdi:%b, s_tdo:%b", $time, op_i, address_i, data_i, data_o, s_tck, s_tms, s_trstn, s_tdi, s_tdo); 
          jtag_soc_dbg.shift_nbits(DMI_SIZE+1, {address_i,data_i,op_i, 1'b0}, buffer, s_tck, s_tms, s_trstn, s_tdi, s_tdo);
+//	 $display("Rich debug 2 %t :op_i: %b, address_i: %d, data_i: %h, data_o: %h, s_tck: %b,s_tms:%b, s_trstn:%b, s_tdi:%b, s_tdo:%b, dim_op: %b", $time, op_i, address_i, data_i, data_o, s_tck, s_tms, s_trstn, s_tdi, s_tdo,buffer[2:1]); 
          jtag_soc_dbg.jtag_goto_UPDATE_DR_FROM_SHIFT_DR(s_tck, s_tms, s_trstn, s_tdi);
+//	 $display("Rich debug 3 %t :op_i: %b, address_i: %d, data_i: %h, data_o: %h, s_tck: %b,s_tms:%b, s_trstn:%b, s_tdi:%b, s_tdo:%b", $time, op_i, address_i, data_i, data_o, s_tck, s_tms, s_trstn, s_tdi, s_tdo); 
          jtag_soc_dbg.jtag_goto_CAPTURE_DR_FROM_UPDATE_DR_GETDATA(buffer, s_tck, s_tms, s_trstn, s_tdi,s_tdo);
+//	 $display("Rich debug 4 %t :op_i: %b, address_i: %d, data_i: %h, data_o: %h, s_tck: %b,s_tms:%b, s_trstn:%b, s_tdi:%b, s_tdo:%b, dim_op: %b", $time, op_i, address_i, data_i, data_o, s_tck, s_tms, s_trstn, s_tdi, s_tdo,buffer[2:1]); 
          buffer_riscv = buffer[DMI_SIZE:1];
          //while(buffer_riscv[1:0] == 2'b11) begin
          //   //$display("buffer is set_dmi is %x (OP %x address %x datain %x) (%t)",buffer, buffer[1:0], buffer[8:2], buffer[DMI_SIZE-1:9], $realtime);
@@ -949,6 +957,7 @@ package jtag_pkg;
          //end
          //$display("dataout is set_dmi is %x (OP %x address %x datain %x) (%t)",buffer, buffer[1:0], buffer[40:34],  buffer[33:2], $realtime);
          data_o[1:0]   = buffer_riscv[1:0];
+//	 $display("Rich debug 5 %t :op_i: %b, address_i: %d, data_i: %h, data_o: %h, s_tck: %b,s_tms:%b, s_trstn:%b, s_tdi:%b, s_tdo:%b, dim_op: %b ", $time, op_i, address_i, data_i, data_o, s_tck, s_tms, s_trstn, s_tdi, s_tdo, data_o[1:0]); 
          data_o[40:34] = buffer_riscv[40:34];
          data_o[33:2]  = buffer_riscv[33:2];
          jtag_soc_dbg.idle(s_tck, s_tms, s_trstn, s_tdi);
@@ -1120,7 +1129,7 @@ package jtag_pkg;
              end
 
              if (dmi_op == 2'h3) begin
-                 $display("[TB] %t retrying debug reg access", $realtime);
+                 $display("[TB] %t, retrying debug reg access (read)", $realtime);
                  this.dmi_reset(s_tck,s_tms,s_trstn,s_tdi,s_tdo);
                  this.init_dmi_access(s_tck,s_tms,s_trstn,s_tdi);
              end
@@ -1187,7 +1196,7 @@ package jtag_pkg;
              end
 
              if (dmi_op == 2'h3) begin
-                 $display("[TB] %t retrying debug reg access", $realtime);
+                 $display("[TB] %t retrying debug reg access (write)", $realtime);
                  this.dmi_reset(s_tck,s_tms,s_trstn,s_tdi,s_tdo);
                  this.init_dmi_access(s_tck,s_tms,s_trstn,s_tdi);
              end

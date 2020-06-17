@@ -1,5 +1,4 @@
-// Copyright 2018 ETH Zurich and University of Bologna.
-// Copyright and related rights are licensed under the Solderpad Hardware
+// Copyright 2018 ETH Zurich and University of Bologna.  // Copyright and related rights are licensed under the Solderpad Hardware
 // License, Version 0.51 (the "License"); you may not use this file except in
 // compliance with the License.  You may obtain a copy of the License at
 // http://solderpad.org/licenses/SHL-0.51. Unless required by applicable law
@@ -23,6 +22,12 @@ module pulpissimo #(
    inout  wire        pad_spim_csn0,
    inout  wire        pad_spim_csn1,
    inout  wire        pad_spim_sck,
+
+   inout  wire	[7:0] pad_hbus_dq,
+   inout  wire        pad_hbus_rwds,
+   inout  wire 	      pad_hbus_csn0,
+   inout  wire	      pad_hbus_clk,
+   inout  wire 	      pad_hbus_clkn,
 
    inout  wire        pad_uart_rx,
    inout  wire        pad_uart_tx,
@@ -95,6 +100,18 @@ module pulpissimo #(
   logic s_out_spim_csn0  ;
   logic s_out_spim_csn1  ;
   logic s_out_spim_sck   ;
+  logic s_out_hbus_dq_0	 ;
+  logic s_out_hbus_dq_1	 ;
+  logic s_out_hbus_dq_2	 ;
+  logic s_out_hbus_dq_3	 ;
+  logic s_out_hbus_dq_4	 ;
+  logic s_out_hbus_dq_5	 ;
+  logic s_out_hbus_dq_6	 ;
+  logic s_out_hbus_dq_7	 ;
+  logic s_out_hbus_rwds  ;
+  logic s_out_hbus_csn0  ;
+  logic s_out_hbus_clk	 ;
+  logic s_out_hbus_clkn  ;
   logic s_out_uart_rx    ;
   logic s_out_uart_tx    ;
   logic s_out_cam_pclk   ;
@@ -128,6 +145,15 @@ module pulpissimo #(
   logic s_in_spim_csn0   ;
   logic s_in_spim_csn1   ;
   logic s_in_spim_sck    ;
+  logic s_in_hbus_dq_0	 ;
+  logic s_in_hbus_dq_1	 ;
+  logic s_in_hbus_dq_2	 ;
+  logic s_in_hbus_dq_3	 ;
+  logic s_in_hbus_dq_4	 ;
+  logic s_in_hbus_dq_5	 ;
+  logic s_in_hbus_dq_6	 ;
+  logic s_in_hbus_dq_7	 ;
+  logic s_in_hbus_rwds   ;
   logic s_in_uart_rx     ;
   logic s_in_uart_tx     ;
   logic s_in_cam_pclk    ;
@@ -161,6 +187,11 @@ module pulpissimo #(
   logic s_oe_spim_csn0   ;
   logic s_oe_spim_csn1   ;
   logic s_oe_spim_sck    ;
+  logic s_oe_hbus_dq ;
+  logic s_oe_hbus_rwds   ;
+  logic s_oe_hbus_csn0	 ;
+  logic s_oe_hbus_clk	 ;
+  logic s_oe_hbus_clkn	 ;
   logic s_oe_uart_rx     ;
   logic s_oe_uart_tx     ;
   logic s_oe_cam_pclk    ;
@@ -288,6 +319,15 @@ module pulpissimo #(
   logic                        s_spi_master1_sdo;
   logic [1:0]                  s_spi_master1_mode;
 
+  logic	[7:0]		       s_hbus_dq_o;
+  logic [1:0]		       s_hbus_rwds_o;
+  logic 		       s_hbus_csn0;
+  logic 		       s_hbus_clk;
+  logic 		       s_hbus_clkn;
+  logic [7:0]		       s_hbus_dq_i;
+  logic 		       s_hbus_rwds_i;
+  logic 		       s_hbus_dq_oe;
+  logic 		       s_hbus_rwds_oe; 
   logic                        s_sdio_clk;
   logic                        s_sdio_cmdi;
   logic                        s_sdio_cmdo;
@@ -370,6 +410,11 @@ module pulpissimo #(
         .oe_spim_csn0_i        ( s_oe_spim_csn0         ),
         .oe_spim_csn1_i        ( s_oe_spim_csn1         ),
         .oe_spim_sck_i         ( s_oe_spim_sck          ),
+	.oe_hbus_dq_i	       ( s_oe_hbus_dq		),
+	.oe_hbus_rwds_i	       ( s_oe_hbus_rwds		),
+	.oe_hbus_csn0_i	       ( s_oe_hbus_csn0		),
+	.oe_hbus_clk_i	       ( s_oe_hbus_clk		),
+	.oe_hbus_clkn_i	       ( s_oe_hbus_clkn		),
         .oe_sdio_clk_i         ( s_oe_sdio_clk          ),
         .oe_sdio_cmd_i         ( s_oe_sdio_cmd          ),
         .oe_sdio_data0_i       ( s_oe_sdio_data0        ),
@@ -403,6 +448,18 @@ module pulpissimo #(
         .out_spim_csn0_i       ( s_out_spim_csn0        ),
         .out_spim_csn1_i       ( s_out_spim_csn1        ),
         .out_spim_sck_i        ( s_out_spim_sck         ),
+	.out_hbus_dq_0_i       ( s_out_hbus_dq_0	),
+	.out_hbus_dq_1_i       ( s_out_hbus_dq_1	),
+	.out_hbus_dq_2_i       ( s_out_hbus_dq_2	),
+	.out_hbus_dq_3_i       ( s_out_hbus_dq_3	),
+	.out_hbus_dq_4_i       ( s_out_hbus_dq_4	),
+	.out_hbus_dq_5_i       ( s_out_hbus_dq_5	),
+	.out_hbus_dq_6_i       ( s_out_hbus_dq_6	),
+	.out_hbus_dq_7_i       ( s_out_hbus_dq_7	),
+	.out_hbus_rwds_i       ( s_out_hbus_rwds	),
+	.out_hbus_csn0_i       ( s_out_hbus_csn0	),
+	.out_hbus_clk_i        ( s_out_hbus_clk		),
+	.out_hbus_clkn_i       ( s_out_hbus_clkn	),
         .out_sdio_clk_i        ( s_out_sdio_clk         ),
         .out_sdio_cmd_i        ( s_out_sdio_cmd         ),
         .out_sdio_data0_i      ( s_out_sdio_data0       ),
@@ -436,6 +493,15 @@ module pulpissimo #(
         .in_spim_csn0_o        ( s_in_spim_csn0         ),
         .in_spim_csn1_o        ( s_in_spim_csn1         ),
         .in_spim_sck_o         ( s_in_spim_sck          ),
+	.in_hbus_dq_0_o	       ( s_in_hbus_dq_0		),
+	.in_hbus_dq_1_o	       ( s_in_hbus_dq_1		),
+	.in_hbus_dq_2_o	       ( s_in_hbus_dq_2		),
+	.in_hbus_dq_3_o	       ( s_in_hbus_dq_3		),
+	.in_hbus_dq_4_o	       ( s_in_hbus_dq_4		),
+	.in_hbus_dq_5_o	       ( s_in_hbus_dq_5		),
+	.in_hbus_dq_6_o	       ( s_in_hbus_dq_6		),
+	.in_hbus_dq_7_o	       ( s_in_hbus_dq_7		),
+	.in_hbus_rwds_o	       ( s_in_hbus_rwds		),
         .in_sdio_clk_o         ( s_in_sdio_clk          ),
         .in_sdio_cmd_o         ( s_in_sdio_cmd          ),
         .in_sdio_data0_o       ( s_in_sdio_data0        ),
@@ -477,6 +543,11 @@ module pulpissimo #(
         .pad_sdio_data1        ( pad_sdio_data1         ),
         .pad_sdio_data2        ( pad_sdio_data2         ),
         .pad_sdio_data3        ( pad_sdio_data3         ),
+	.pad_hbus_dq	       ( pad_hbus_dq		),
+	.pad_hbus_rwds	       ( pad_hbus_rwds		),
+	.pad_hbus_csn0	       ( pad_hbus_csn0		),
+	.pad_hbus_clk	       ( pad_hbus_clk		),
+	.pad_hbus_clkn	       ( pad_hbus_clkn		),
         .pad_i2s0_sck          ( pad_i2s0_sck           ),
         .pad_i2s0_ws           ( pad_i2s0_ws            ),
         .pad_i2s0_sdi          ( pad_i2s0_sdi           ),
@@ -583,6 +654,16 @@ module pulpissimo #(
         .spi_master1_sdo_i          ( 1'b0                        ),
         .spi_master1_mode_i         ( 2'b00                       ),
 
+	.hbus_dq_o		    ( s_hbus_dq_o		  ),
+	.hbus_rwds_o		    ( s_hbus_rwds_o		  ),
+	.hbus_csn0_i		    ( s_hbus_csn0		  ),
+	.hbus_clk_i		    ( s_hbus_clk		  ),
+	.hbus_clkn_i		    ( s_hbus_clkn		  ),
+	.hbus_dq_i		    ( s_hbus_dq_i		  ),
+	.hbus_rwds_i		    ( s_hbus_rwds_i		  ),
+	.hbus_dq_oe_i		    ( s_hbus_dq_oe		  ),
+	.hbus_rwds_oe_i		    ( s_hbus_rwds_oe		  ),
+
         .sdio_clk_i                 ( s_sdio_clk                  ),
         .sdio_cmd_i                 ( s_sdio_cmdo                 ),
         .sdio_cmd_o                 ( s_sdio_cmdi                 ),
@@ -609,6 +690,19 @@ module pulpissimo #(
         .out_spim_csn1_o            ( s_out_spim_csn1             ),
         .out_spim_sck_o             ( s_out_spim_sck              ),
 
+	.out_hbus_dq_0_o	    ( s_out_hbus_dq_0		  ),
+	.out_hbus_dq_1_o	    ( s_out_hbus_dq_1		  ),
+	.out_hbus_dq_2_o	    ( s_out_hbus_dq_2		  ),
+	.out_hbus_dq_3_o	    ( s_out_hbus_dq_3		  ),
+	.out_hbus_dq_4_o	    ( s_out_hbus_dq_4		  ),
+	.out_hbus_dq_5_o	    ( s_out_hbus_dq_5		  ),
+	.out_hbus_dq_6_o	    ( s_out_hbus_dq_6		  ),
+	.out_hbus_dq_7_o	    ( s_out_hbus_dq_7		  ),
+	.out_hbus_rwds_o	    ( s_out_hbus_rwds		  ),
+	.out_hbus_csn0_o	    ( s_out_hbus_csn0		  ),
+	.out_hbus_clk_o		    ( s_out_hbus_clk		  ),
+	.out_hbus_clkn_o	    ( s_out_hbus_clkn		  ),
+
         .out_sdio_clk_o             ( s_out_sdio_clk              ),
         .out_sdio_cmd_o             ( s_out_sdio_cmd              ),
         .out_sdio_data0_o           ( s_out_sdio_data0            ),
@@ -631,6 +725,7 @@ module pulpissimo #(
         .out_cam_data7_o            ( s_out_cam_data7             ),
         .out_cam_vsync_o            ( s_out_cam_vsync             ),
 
+
         .out_i2c0_sda_o             ( s_out_i2c0_sda              ),
         .out_i2c0_scl_o             ( s_out_i2c0_scl              ),
         .out_i2s0_sck_o             ( s_out_i2s0_sck              ),
@@ -645,6 +740,16 @@ module pulpissimo #(
         .in_spim_csn0_i             ( s_in_spim_csn0              ),
         .in_spim_csn1_i             ( s_in_spim_csn1              ),
         .in_spim_sck_i              ( s_in_spim_sck               ),
+
+	.in_hbus_dq_0_i		    ( s_in_hbus_dq_0		  ),
+	.in_hbus_dq_1_i		    ( s_in_hbus_dq_1		  ),
+	.in_hbus_dq_2_i		    ( s_in_hbus_dq_2		  ),
+	.in_hbus_dq_3_i		    ( s_in_hbus_dq_3		  ),
+	.in_hbus_dq_4_i		    ( s_in_hbus_dq_4		  ),
+	.in_hbus_dq_5_i		    ( s_in_hbus_dq_5		  ),
+	.in_hbus_dq_6_i		    ( s_in_hbus_dq_6		  ),
+	.in_hbus_dq_7_i		    ( s_in_hbus_dq_7		  ),
+	.in_hbus_rwds_i		    ( s_in_hbus_rwds		  ),
 
         .in_sdio_clk_i              ( s_in_sdio_clk               ),
         .in_sdio_cmd_i              ( s_in_sdio_cmd               ),
@@ -681,6 +786,13 @@ module pulpissimo #(
         .oe_spim_csn0_o             ( s_oe_spim_csn0              ),
         .oe_spim_csn1_o             ( s_oe_spim_csn1              ),
         .oe_spim_sck_o              ( s_oe_spim_sck               ),
+
+	.oe_hbus_dq_o		    ( s_oe_hbus_dq		  ),
+	.oe_hbus_rwds_o		    ( s_oe_hbus_rwds		  ),
+	.oe_hbus_csn0_o		    ( s_oe_hbus_csn0		  ),
+	.oe_hbus_clk_o		    ( s_oe_hbus_clk		  ),
+	.oe_hbus_clkn_o		    ( s_oe_hbus_clkn		  ),
+
 
         .oe_sdio_clk_o              ( s_oe_sdio_clk               ),
         .oe_sdio_cmd_o              ( s_oe_sdio_cmd               ),
@@ -808,6 +920,16 @@ module pulpissimo #(
         .spi_master0_sdi1_i           ( s_spi_master0_sdi1               ),
         .spi_master0_sdi2_i           ( s_spi_master0_sdi2               ),
         .spi_master0_sdi3_i           ( s_spi_master0_sdi3               ),
+
+	.hbus_dq_i		      ( s_hbus_dq_o			 ),
+	.hbus_rwds_i		      ( s_hbus_rwds_o			 ),
+	.hbus_csn0_o		      (	s_hbus_csn0			 ),
+        .hbus_clk_o		      ( s_hbus_clk			 ),
+	.hbus_clkn_o		      (	s_hbus_clkn			 ),
+	.hbus_dq_o		      ( s_hbus_dq_i			 ),
+	.hbus_rwds_o		      ( s_hbus_rwds_i			 ),
+	.hbus_dq_oe_o		      ( s_hbus_dq_oe			 ),
+	.hbus_rwds_oe_o		      ( s_hbus_rwds_oe			 ),
 
         .sdio_clk_o                   ( s_sdio_clk                       ),
         .sdio_cmd_o                   ( s_sdio_cmdo                      ),

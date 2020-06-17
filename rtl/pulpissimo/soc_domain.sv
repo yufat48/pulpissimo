@@ -109,6 +109,16 @@ module soc_domain #(
     input  logic                             spi_master0_sdi2_i,
     input  logic                             spi_master0_sdi3_i,
 
+    input  logic [7:0] 			     hbus_dq_i,
+    input  logic 			     hbus_rwds_i,
+    output logic			     hbus_csn0_o,
+    output logic 			     hbus_clk_o,
+    output logic 			     hbus_clkn_o,
+    output logic [7:0]			     hbus_dq_o,
+    output logic 			     hbus_rwds_o,
+    output logic 			     hbus_dq_oe_o,
+    output logic 			     hbus_rwds_oe_o,
+
     output logic                             sdio_clk_o,
     output logic                             sdio_cmd_o,
     input  logic                             sdio_cmd_i,

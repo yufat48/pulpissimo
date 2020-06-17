@@ -1,49 +1,78 @@
-.PHONY: build lib clean sim simc
+VCS			= vcs
+VCS_HOME                = /home/richy/tools/synopsys/install/vcs
+VCS_FLAGS               = -fsdb -full64 -cpp g++-4.8 -cc gcc-4.8 -LDFLAGS -Wl,--no-as-needed
+VCS_FLAGS		+= -debug_access+all -kdb -lca +libext+.sv +libext+.v -assert svaext
+HBUS_HOME 		= /home/richy/projects/uDMA/uDMA_hyperbus/udma_hyperbus
+HPFLASH_HOME		= /home/richy/projects/HB_CONTROLLER/HyperBUS/
+## https://github.com/pulp-platform/tech_cells_generic.git
+PULP_TECH_CELLS_HOME 	= /home/richy/projects/pulp_tech_cells_generic/tech_cells_generic
+##https://github.com/pulp-platform/common_cells.git
+PULP_COMMON_CELLS_HOME  = /home/richy/projects/pulp_tech_cells_generic/common_cells
+##https://github.com/pulp-platform/axi_slice_dc.git
+AXI_SLICE_HOME		=/home/richy/projects/pulp_tech_cells_generic/axi_slice_dc
 
-mkfile_path := $(dir $(abspath $(firstword $(MAKEFILE_LIST))))
 
-VSIM        ?= vsim
-VSIM_FLAGS  = -gUSE_SDVT_SPI=0 -gUSE_SDVT_CPI=0 -gBAUDRATE=115200 \
-		-gENABLE_DEV_DPI=0 -gLOAD_L2=JTAG -gUSE_SDVT_I2S=0
+#CELLS_SRC		:= $(PULP_TECH_CELLS_HOME)/src/deprecated/pulp_clock_gating_async.sv 
+#			    $(PULP_TECH_CELLS_HOME)/src/deprecated/pulp_clk_cells.sv 
+CELLS_SRC		:= -v $(PULP_TECH_CELLS_HOME)/src/deprecated/pulp_clk_cells.sv \
+			   -y $(PULP_TECH_CELLS_HOME)/src/deprecated/ \
+			   -y $(PULP_COMMON_CELLS_HOME)/src/deprecated/ \
+			   -y $(PULP_COMMON_CELLS_HOME)/src/ \
+			   $(AXI_SLICE_HOME)/src/dc_data_buffer.sv \
+			   $(AXI_SLICE_HOME)/src/dc_token_ring_fifo_din.v \
+			   $(AXI_SLICE_HOME)/src/dc_token_ring_fifo_dout.v \
+			   -y $(AXI_SLICE_HOME)/src
+RTLSRC			:= ../rtl/core/udma_ch_addrgen.sv \
+    				../rtl/core/udma_arbiter.sv \
+   				../rtl/core/udma_core.sv \
+    				../rtl/core/udma_rx_channels.sv \
+				../rtl/core/udma_tx_channels.sv \
+			    ../rtl/core/udma_stream_unit.sv \
+			    ../rtl/common/udma_ctrl.sv \
+			    ../rtl/common/udma_apb_if.sv \
+			    ../rtl/common/io_clk_gen.sv \
+			    ../rtl/common/io_event_counter.sv \
+			    ../rtl/common/io_generic_fifo.sv \
+			    ../rtl/common/io_tx_fifo.sv \
+			    ../rtl/common/io_tx_fifo_mark.sv \
+			    ../rtl/common/io_tx_fifo_dc.sv \
+			    ../rtl/common/io_shiftreg.sv \
+			    ../rtl/common/udma_dc_fifo.sv \
+			    ../rtl/common/udma_clkgen.sv \
+			    ../rtl/common/udma_clk_div_cnt.sv
 
-SVLIB	    =  ../rtl/tb/remote_bitbang/librbs
+HBUS_SRC 		:=     $(HBUS_HOME)/rtl/hyperbus_clk_gen.sv \
+			    $(HBUS_HOME)/rtl/hyperbus_cmd_addr_gen.sv \
+			    $(HBUS_HOME)/rtl/hyperbus_ddr_in.sv \
+			    $(HBUS_HOME)/rtl/hyperbus_ddr_out.sv \
+			    $(HBUS_HOME)/rtl/hyperbus_phy.sv \
+			    $(HBUS_HOME)/rtl/hyperbus_ctrl.sv \
+			    $(HBUS_HOME)/rtl/hyperbus_read_clk_rwds.sv \
+			    $(HBUS_HOME)/rtl/hyperbus_reg_if.sv \
+			    $(HBUS_HOME)/rtl/hyperbus_delay_line.sv \
+			    $(HBUS_HOME)/rtl/hyperbus_clock_diff_out.sv \
+			    $(HBUS_HOME)/rtl/udma_hyperbus.sv
 
-all: clean lib build opt
+HPFLASH_SRC		:= $(HPFLASH_HOME)/sim/model/s26ks512s.sv \
+			   $(HPFLASH_HOME)/sim/hbc_io.v			    	
 
-# build the bitbang library, needed for simulating a jtag bridge to OpenOCD
-build-deps:
-	$(MAKE) -C ../rtl/tb/remote_bitbang all
+vcs-sv-build:
+		 vlogan +vc -sverilog -assert svaext -timescale=1ps/1ps  -f src_ips_files.f -f src_rtl_files.f -l debug.log +vc -sverilog -race=all -ignore unique_checks -full64 -kdb $(HBUS_SRC) $(HPFLASH_SRC) 
 
-clean-deps:
-	$(MAKE) -C ../rtl/tb/remote_bitbang clean
+vcs-vhdl-build:
+		vhdlan -full64 -f vhd.f -kdb
 
-sim:
-	$(VSIM) -64 -gui vopt_tb -L models_lib -L vip_lib \
-		-suppress vsim-3009 -suppress vsim-8683 \
-		+UVM_NO_RELNOTES -stats -t ps \
-		-sv_lib $(SVLIB) $(VSIM_FLAGS) \
-		-do "set StdArithNoWarnings 1; set NumericStdNoWarnings 1"
+vcs-elab: 
+	vcs -full64 -top tb_pulp \
+	-pvalue+tb_pulp.USE_SDVT_SPI=0 -pvalue+tb_pulp.USE_SDVT_CPI=0 \
+	-timescale=1ps/1ps \
+	-pvalue+tb_pulp.BAUDRATE=115200 -pvalue+tb_pulp.ENABLE_DEV_DPI=0 \
+	-pvalue+tb_pulp.LOAD_L2='JTAG' -pvalue+tb_pulp.USE_SDVT_I2S=0 \
+	-pvalue+tb_pulp.USE_PULP_BUS_ACCESS=1 \
+	-l vcs_compile.log -fsdb -debug_access+all -kdb -lca \
+	-assert svaext -fsdb -full64 -cpp g++-4.8 -cc gcc-4.8
 
-simc:
-	$(VSIM) -64 -c vopt_tb -L models_lib -L vip_lib \
-		-suppress vsim-3009 -suppress vsim-8683 \
-		+UVM_NO_RELNOTES -stats -t ps \
-		-sv_lib $(SVLIB) $(VSIM_FLAGS) \
-		-do "set StdArithNoWarnings 1; set NumericStdNoWarnings 1" \
-		-do "run -all" \
-		-do "quit -code [examine -radix decimal sim:/tb_pulp/exit_status]"
+vcs-run:
+		./simv $(SIMV_FLAGS) +fsdb+delta +fsdb+skip_cell_mode=2 +fsdb+all +fsdb+mda +fsdb+struct -l sim.log
 
-opt:
-	$(mkfile_path)/tcl_files/rtl_vopt.tcl
-
-build: build-deps
-	@make --no-print-directory -f $(mkfile_path)/vcompile/ips.mk build
-	@make --no-print-directory -f $(mkfile_path)/vcompile/rtl.mk build
-
-lib:
-	@make --no-print-directory -f $(mkfile_path)/vcompile/ips.mk lib
-	@make --no-print-directory -f $(mkfile_path)/vcompile/rtl.mk lib
-
-clean: clean-deps
-	@make --no-print-directory -f $(mkfile_path)/vcompile/ips.mk clean
-	@make --no-print-directory -f $(mkfile_path)/vcompile/rtl.mk clean
+vcs-run-full: vcs-sv-build vcs-vhdl-build vcs-elab vcs-run

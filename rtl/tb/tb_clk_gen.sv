@@ -19,14 +19,17 @@ module tb_clk_gen #(
 ) (
    output logic   clk_o
 );
-
+timeunit 1ps;
+timeprecision 1ps;
    initial
    begin
+	   $display("Rich: printing");
+	   $printtimescale;
       clk_o  = 1'b1;
 
       // wait one cycle first
       #(CLK_PERIOD);
-
+$display("Rich debug: after CLK_PERIOD");
       forever clk_o = #(CLK_PERIOD/2) ~clk_o;
    end
 
