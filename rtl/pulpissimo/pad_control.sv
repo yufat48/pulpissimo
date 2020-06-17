@@ -86,6 +86,17 @@ module pad_control
         input  logic             spi_master0_oen2_i   ,
         input  logic             spi_master0_oen3_i   ,
 
+	//HBUS INTERFACE
+	output logic 	[7:0]    hbus_dq_o,
+	output logic 		 hbus_rwds_o,	
+	input  logic    	 hbus_csn0_i,
+	input  logic 		 hbus_clk_i,
+ 	input  logic 		 hbus_clkn_i,
+	input  logic    [7:0]    hbus_dq_i,
+	input  logic    	 hbus_rwds_i,
+	input  logic 		 hbus_dq_oe_i,
+	input  logic    	 hbus_rwds_oe_i,
+
         // CAMERA INTERFACE
         output logic             cam_pclk_o           ,
         output logic [7:0]       cam_data_o           ,
@@ -118,6 +129,18 @@ module pad_control
         output logic             out_sdio_data3_o ,
         output logic             out_uart_rx_o    ,
         output logic             out_uart_tx_o    ,
+	output logic 		 out_hbus_dq_0_o  ,
+	output logic 		 out_hbus_dq_1_o  ,
+	output logic 		 out_hbus_dq_2_o  ,
+	output logic 		 out_hbus_dq_3_o  ,
+	output logic 		 out_hbus_dq_4_o  ,
+	output logic 		 out_hbus_dq_5_o  ,
+	output logic 		 out_hbus_dq_6_o  ,
+	output logic 		 out_hbus_dq_7_o  ,
+	output logic 		 out_hbus_rwds_o  ,
+	output logic 		 out_hbus_csn0_o  ,
+	output logic 		 out_hbus_clk_o   ,
+	output logic 		 out_hbus_clkn_o  ,
         output logic             out_cam_pclk_o   ,
         output logic             out_cam_hsync_o  ,
         output logic             out_cam_data0_o  ,
@@ -144,6 +167,17 @@ module pad_control
         input logic              in_spim_csn0_i   ,
         input logic              in_spim_csn1_i   ,
         input logic              in_spim_sck_i    ,
+	
+	input  logic 		 in_hbus_dq_0_i	      ,
+	input  logic 		 in_hbus_dq_1_i	      ,
+	input  logic 		 in_hbus_dq_2_i	      ,
+	input  logic 		 in_hbus_dq_3_i	      ,
+	input  logic 		 in_hbus_dq_4_i	      ,
+	input  logic 		 in_hbus_dq_5_i	      ,
+	input  logic 		 in_hbus_dq_6_i	      ,
+	input  logic 		 in_hbus_dq_7_i	      ,
+	input  logic 		 in_hbus_rwds_i	      ,
+
         input logic              in_sdio_clk_i        ,
         input logic              in_sdio_cmd_i        ,
         input logic              in_sdio_data0_i      ,
@@ -178,6 +212,11 @@ module pad_control
         output logic             oe_spim_csn0_o   ,
         output logic             oe_spim_csn1_o   ,
         output logic             oe_spim_sck_o    ,
+	output logic [7:0]	 oe_hbus_dq_o     ,
+	output logic 		 oe_hbus_rwds_o   ,
+	output logic 		 oe_hbus_csn0_o   ,
+	output logic 		 oe_hbus_clk_o   ,
+	output logic 		 oe_hbus_clkn_o   ,
         output logic             oe_sdio_clk_o    ,
         output logic             oe_sdio_cmd_o    ,
         output logic             oe_sdio_data0_o  ,
@@ -247,7 +286,18 @@ module pad_control
    assign oe_i2s0_ws_o     = (pad_mux_i[36] == 2'b00) ? i2s_slave_ws_oe     : ((pad_mux_i[36] == 2'b01) ? gpio_dir_i[29] : ((pad_mux_i[36] == 2'b10) ? s_alt2        : s_alt3 ));
    assign oe_i2s0_sdi_o    = (pad_mux_i[37] == 2'b00) ? 1'b0                : ((pad_mux_i[37] == 2'b01) ? gpio_dir_i[30] : ((pad_mux_i[37] == 2'b10) ? s_alt2        : s_alt3 ));
    assign oe_i2s1_sdi_o    = (pad_mux_i[38] == 2'b00) ? 1'b0                : ((pad_mux_i[38] == 2'b01) ? gpio_dir_i[31] : ((pad_mux_i[38] == 2'b10) ? s_alt2        : s_alt3 ));
-
+   assign oe_hbus_dq_o[0]  = (pad_mux_i[39] == 2'b00) ? hbus_dq_oe_i	    : ((pad_mux_i[39] == 2'b01) ? s_alt1	 : ((pad_mux_i[39] == 2'b10) ? s_alt2	     : s_alt3 )); 
+   assign oe_hbus_dq_o[1]  = (pad_mux_i[40] == 2'b00) ? hbus_dq_oe_i	    : ((pad_mux_i[40] == 2'b01) ? s_alt1	 : ((pad_mux_i[40] == 2'b10) ? s_alt2	     : s_alt3 )); 
+   assign oe_hbus_dq_o[2]  = (pad_mux_i[41] == 2'b00) ? hbus_dq_oe_i	    : ((pad_mux_i[41] == 2'b01) ? s_alt1	 : ((pad_mux_i[41] == 2'b10) ? s_alt2	     : s_alt3 )); 
+   assign oe_hbus_dq_o[3]  = (pad_mux_i[42] == 2'b00) ? hbus_dq_oe_i	    : ((pad_mux_i[42] == 2'b01) ? s_alt1	 : ((pad_mux_i[42] == 2'b10) ? s_alt2	     : s_alt3 )); 
+   assign oe_hbus_dq_o[4]  = (pad_mux_i[43] == 2'b00) ? hbus_dq_oe_i	    : ((pad_mux_i[43] == 2'b01) ? s_alt1	 : ((pad_mux_i[43] == 2'b10) ? s_alt2	     : s_alt3 )); 
+   assign oe_hbus_dq_o[5]  = (pad_mux_i[44] == 2'b00) ? hbus_dq_oe_i	    : ((pad_mux_i[44] == 2'b01) ? s_alt1	 : ((pad_mux_i[44] == 2'b10) ? s_alt2	     : s_alt3 )); 
+   assign oe_hbus_dq_o[6]  = (pad_mux_i[45] == 2'b00) ? hbus_dq_oe_i	    : ((pad_mux_i[45] == 2'b01) ? s_alt1	 : ((pad_mux_i[45] == 2'b10) ? s_alt2	     : s_alt3 )); 
+   assign oe_hbus_dq_o[7]  = (pad_mux_i[46] == 2'b00) ? hbus_dq_oe_i	    : ((pad_mux_i[46] == 2'b01) ? s_alt1	 : ((pad_mux_i[46] == 2'b10) ? s_alt2	     : s_alt3 )); 
+   assign oe_hbus_csn0_o   = (pad_mux_i[47] == 2'b00) ? 1'b1		    : ((pad_mux_i[47] == 2'b01) ? s_alt1	 : ((pad_mux_i[47] == 2'b10) ? s_alt2	     : s_alt3 )); 
+   assign oe_hbus_clk_o	   = (pad_mux_i[48] == 2'b00) ? 1'b1		    : ((pad_mux_i[48] == 2'b01) ? s_alt1	 : ((pad_mux_i[48] == 2'b10) ? s_alt2	     : s_alt3 )); 
+   assign oe_hbus_clkn_o   = (pad_mux_i[49] == 2'b00) ? 1'b1		    : ((pad_mux_i[49] == 2'b01) ? s_alt1	 : ((pad_mux_i[49] == 2'b10) ? s_alt2	     : s_alt3 )); 
+   assign oe_hbus_rwds_o   = (pad_mux_i[50] == 2'b00) ? hbus_rwds_oe_i	    : ((pad_mux_i[50] == 2'b01) ? s_alt1	 : ((pad_mux_i[50] == 2'b10) ? s_alt2	     : s_alt3 )); 
    /////////////////////////////////////////////////////////////////////////////////////////////
    // DATA OUTPUT
    /////////////////////////////////////////////////////////////////////////////////////////////
@@ -283,6 +333,18 @@ module pad_control
    assign out_i2s0_ws_o    = (pad_mux_i[36] == 2'b00) ? i2s_slave_ws_i     : ((pad_mux_i[36] == 2'b01) ? gpio_out_i[29] : ((pad_mux_i[36] == 2'b10) ? s_alt2         : s_alt3 ));
    assign out_i2s0_sdi_o   = (pad_mux_i[37] == 2'b00) ? 1'b0               : ((pad_mux_i[37] == 2'b01) ? gpio_out_i[30] : ((pad_mux_i[37] == 2'b10) ? s_alt2         : s_alt3 ));
    assign out_i2s1_sdi_o   = (pad_mux_i[38] == 2'b00) ? 1'b0               : ((pad_mux_i[38] == 2'b01) ? gpio_out_i[31] : ((pad_mux_i[38] == 2'b10) ? s_alt2         : s_alt3 ));
+   assign out_hbus_dq_0_o = (pad_mux_i[39] == 2'b00) ? hbus_dq_i[0]	   : ((pad_mux_i[39] == 2'b01) ? s_alt1		: ((pad_mux_i[39] == 2'b10) ? s_alt2	     : s_alt3 ));
+   assign out_hbus_dq_1_o = (pad_mux_i[40] == 2'b00) ? hbus_dq_i[1]	   : ((pad_mux_i[40] == 2'b01) ? s_alt1		: ((pad_mux_i[40] == 2'b10) ? s_alt2	     : s_alt3 ));
+   assign out_hbus_dq_2_o = (pad_mux_i[41] == 2'b00) ? hbus_dq_i[2]	   : ((pad_mux_i[41] == 2'b01) ? s_alt1		: ((pad_mux_i[41] == 2'b10) ? s_alt2	     : s_alt3 ));
+   assign out_hbus_dq_3_o = (pad_mux_i[42] == 2'b00) ? hbus_dq_i[3]	   : ((pad_mux_i[42] == 2'b01) ? s_alt1		: ((pad_mux_i[42] == 2'b10) ? s_alt2	     : s_alt3 ));
+   assign out_hbus_dq_4_o = (pad_mux_i[43] == 2'b00) ? hbus_dq_i[4]	   : ((pad_mux_i[43] == 2'b01) ? s_alt1		: ((pad_mux_i[43] == 2'b10) ? s_alt2	     : s_alt3 ));
+   assign out_hbus_dq_5_o = (pad_mux_i[44] == 2'b00) ? hbus_dq_i[5]	   : ((pad_mux_i[44] == 2'b01) ? s_alt1		: ((pad_mux_i[44] == 2'b10) ? s_alt2	     : s_alt3 ));
+   assign out_hbus_dq_6_o = (pad_mux_i[45] == 2'b00) ? hbus_dq_i[6]	   : ((pad_mux_i[45] == 2'b01) ? s_alt1		: ((pad_mux_i[45] == 2'b10) ? s_alt2	     : s_alt3 ));
+   assign out_hbus_dq_7_o = (pad_mux_i[46] == 2'b00) ? hbus_dq_i[7]	   : ((pad_mux_i[46] == 2'b01) ? s_alt1		: ((pad_mux_i[46] == 2'b10) ? s_alt2	     : s_alt3 ));
+   assign out_hbus_csn0_o  = (pad_mux_i[47] == 2'b00) ? hbus_csn0_i	   : ((pad_mux_i[47] == 2'b01) ? s_alt1		: ((pad_mux_i[47] == 2'b10) ? s_alt2	     : s_alt3 ));
+   assign out_hbus_clk_o   = (pad_mux_i[48] == 2'b00) ? hbus_clk_i	   : ((pad_mux_i[48] == 2'b01) ? s_alt1		: ((pad_mux_i[48] == 2'b10) ? s_alt2	     : s_alt3 ));
+   assign out_hbus_clkn_o  = (pad_mux_i[49] == 2'b00) ? hbus_clkn_i	   : ((pad_mux_i[49] == 2'b01) ? s_alt1		: ((pad_mux_i[49] == 2'b10) ? s_alt2	     : s_alt3 ));
+   assign out_hbus_rwds_o  = (pad_mux_i[49] == 2'b00) ? hbus_rwds_i	   : ((pad_mux_i[49] == 2'b01) ? s_alt1		: ((pad_mux_i[49] == 2'b10) ? s_alt2	     : s_alt3 ));
 
    /////////////////////////////////////////////////////////////////////////////////////////////
    // DATA INPUT
@@ -318,6 +380,17 @@ module pad_control
 
    //    UART
    assign uart_rx_o     = (pad_mux_i[38] == 2'b00) ? in_uart_rx_i : 1'b1;
+
+   //HBUS
+   assign hbus_dq_o[0]  = (pad_mux_i[39] == 2'b00) ? in_hbus_dq_0_i: 1'b0;
+   assign hbus_dq_o[1]  = (pad_mux_i[40] == 2'b00) ? in_hbus_dq_1_i: 1'b0;
+   assign hbus_dq_o[2]  = (pad_mux_i[41] == 2'b00) ? in_hbus_dq_2_i: 1'b0;
+   assign hbus_dq_o[3]  = (pad_mux_i[42] == 2'b00) ? in_hbus_dq_3_i: 1'b0;
+   assign hbus_dq_o[4]  = (pad_mux_i[43] == 2'b00) ? in_hbus_dq_4_i: 1'b0;
+   assign hbus_dq_o[5]  = (pad_mux_i[44] == 2'b00) ? in_hbus_dq_5_i: 1'b0;
+   assign hbus_dq_o[6]  = (pad_mux_i[45] == 2'b00) ? in_hbus_dq_6_i: 1'b0;
+   assign hbus_dq_o[7]  = (pad_mux_i[46] == 2'b00) ? in_hbus_dq_7_i: 1'b0;
+   assign hbus_rwds_o	= (pad_mux_i[50] == 2'b00) ? in_hbus_rwds_i: 1'b0;
 
    assign spi_master0_sdi0_o = (pad_mux_i[33] == 2'b00) ? in_spim_sdio0_i : 1'b0;
    assign spi_master0_sdi1_o = (pad_mux_i[34] == 2'b00) ? in_spim_sdio1_i : 1'b0;
